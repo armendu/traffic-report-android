@@ -16,7 +16,7 @@
     </fragment>
 
     <HorizontalScrollView
-        android:layout_width="258dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         >
 
@@ -44,11 +44,11 @@
                 android:text="Marker" />
 
             <Button
-                android:id="@+id/btnGPS"
+                android:id="@+id/btnSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="buttonClicked"
-                android:text="GPS" />
+                android:text="🔎" />
 
         </LinearLayout>
     </HorizontalScrollView>
