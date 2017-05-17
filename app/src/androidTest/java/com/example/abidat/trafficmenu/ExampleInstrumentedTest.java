@@ -1,4 +1,4 @@
-package com.example.abidat.trafficreport;
+package com.example.abidat.trafficmenu;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.abidat.trafficreport", appContext.getPackageName());
+        assertEquals("com.example.abidat.trafficmenu", appContext.getPackageName());
     }
 }

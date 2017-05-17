@@ -1,4 +1,4 @@
-package com.example.abidat.trafficreport;
+package com.example.abidat.trafficmenu;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 
 
 public class MapStateManager {
@@ -27,17 +26,23 @@ public class MapStateManager {
     }
 
     public void saveMapState(GoogleMap map){
-        SharedPreferences.Editor sharedPreferencesEditor = mapStatePrefs.edit();
-        CameraPosition cameraPosition  = map.getCameraPosition();
+        if(map!=null) {
+            SharedPreferences.Editor sharedPreferencesEditor = mapStatePrefs.edit();
+            CameraPosition cameraPosition = map.getCameraPosition();
 
-        sharedPreferencesEditor.putFloat(LATITUDE, (float) cameraPosition.target.latitude);
-        sharedPreferencesEditor.putFloat(LONGITUDE, (float) cameraPosition.target.longitude);
-        sharedPreferencesEditor.putFloat(ZOOM,cameraPosition.zoom);
-        sharedPreferencesEditor.putFloat(TILT,cameraPosition.tilt);
-        sharedPreferencesEditor.putFloat(BEARING,cameraPosition.bearing);
-        sharedPreferencesEditor.putInt(MAPTYPE,map.getMapType());
+            sharedPreferencesEditor.putFloat(LATITUDE, (float) cameraPosition.target.latitude);
+            sharedPreferencesEditor.putFloat(LONGITUDE, (float) cameraPosition.target.longitude);
+            sharedPreferencesEditor.putFloat(ZOOM, cameraPosition.zoom);
+            sharedPreferencesEditor.putFloat(TILT, cameraPosition.tilt);
+            sharedPreferencesEditor.putFloat(BEARING, cameraPosition.bearing);
+            sharedPreferencesEditor.putInt(MAPTYPE, map.getMapType());
 
-        sharedPreferencesEditor.commit();
+            sharedPreferencesEditor.commit();
+        }
+        else {
+            SharedPreferences.Editor sharedPreferencesEditor = mapStatePrefs.edit();
+            sharedPreferencesEditor.putInt(MAPTYPE, GoogleMap.MAP_TYPE_SATELLITE);
+        }
     }
 
     public CameraPosition getSavedCameraPosition(){
@@ -58,6 +63,9 @@ public class MapStateManager {
 
     public int getMapType(){
         int mapType = mapStatePrefs.getInt(MAPTYPE, 0);
+        if(mapType == 0){
+            return GoogleMap.MAP_TYPE_NORMAL;
+        }
         return mapType;
     }
 }
