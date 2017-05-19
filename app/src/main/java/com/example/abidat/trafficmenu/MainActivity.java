@@ -163,11 +163,11 @@ public class MainActivity extends AppCompatActivity
                     LatLng dest = MarkerPoints.get(1);
 
                     SQLiteDatabase sqLiteDatabase = getBaseContext().openOrCreateDatabase("RaportimiFiek",MODE_PRIVATE,null);
-                    sqLiteDatabase.execSQL("CREATE TABLE tblRaportimet(id varchar(100), time datetime, state integer, origin float, destination float);");
-                    sqLiteDatabase.execSQL("Insert into tblRaportimet values('"+
-                            mGoogleApiClient.toString()+"', null, 1, "+ origin.latitude + ", "+ dest.longitude + ");");
-                    Log.d(TAG, "onMapClick: origin.latitude: " + origin.latitude + "orgin.longitude: " + origin.longitude);
-                    sqLiteDatabase.close();
+                    //sqLiteDatabase.execSQL("CREATE TABLE tblRaportimet(id varchar(100), time datetime, state integer, origin float, destination float);");
+                    //sqLiteDatabase.execSQL("Insert into tblRaportimet values('"+
+                    //        mGoogleApiClient.toString()+"', null, 1, "+ origin.latitude + ", "+ dest.longitude + ");");
+                    //Log.d(TAG, "onMapClick: origin.latitude: " + origin.latitude + "orgin.longitude: " + origin.longitude);
+                    //sqLiteDatabase.close();
 
                     // Getting URL to the Google Directions API
                     UrlGetSet urlGetSet = new UrlGetSet();
