@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -26,6 +25,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,13 +41,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -55,7 +59,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    ArrayList<LatLng> MarkerPoints = new ArrayList<>();;
+    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference rootReference = firebaseDatabase.getReference();
+    private DatabaseReference idReference = rootReference.child("id");
+    private DatabaseReference originReference = rootReference.child("origin");
+
+    ArrayList<LatLng> MarkerPoints;
     SupportMapFragment supportMapFragment;
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
@@ -78,7 +87,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "This button will report the blocked roads", Snackbar.LENGTH_LONG)
+                saveReportInformation();
+                Snackbar.make(view, "Blocked road successfully reported!", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -95,6 +105,7 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
+        MarkerPoints = new ArrayList<>();
         supportMapFragment.getMapAsync(this);
         android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
 
@@ -126,7 +137,6 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onMapReady: Location set!");
         }
 
-        // Setting onclick event listener for the map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
@@ -162,20 +172,12 @@ public class MainActivity extends AppCompatActivity
                     LatLng origin = MarkerPoints.get(0);
                     LatLng dest = MarkerPoints.get(1);
 
-                    SQLiteDatabase sqLiteDatabase = getBaseContext().openOrCreateDatabase("RaportimiFiek",MODE_PRIVATE,null);
-                    //sqLiteDatabase.execSQL("CREATE TABLE tblRaportimet(id varchar(100), time datetime, state integer, origin float, destination float);");
-                    //sqLiteDatabase.execSQL("Insert into tblRaportimet values('"+
-                    //        mGoogleApiClient.toString()+"', null, 1, "+ origin.latitude + ", "+ dest.longitude + ");");
-                    //Log.d(TAG, "onMapClick: origin.latitude: " + origin.latitude + "orgin.longitude: " + origin.longitude);
-                    //sqLiteDatabase.close();
-
                     // Getting URL to the Google Directions API
                     UrlGetSet urlGetSet = new UrlGetSet();
                     String url = urlGetSet.getUrl(origin, dest);
-                    Log.d("onMapClick", url.toString());
-
-
+                    Log.d("onMapClick", url);
                     FetchUrl FetchUrl = new FetchUrl();
+
                     // Start downloading json data from Google Directions API
                     FetchUrl.execute(url);
                     //move map camera
@@ -359,7 +361,6 @@ public class MainActivity extends AppCompatActivity
             CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(position);
             mMap.moveCamera(cameraUpdate);
             Log.i(TAG, "onLocationChanged: Application loaded a previous session!");
-            MarkerPoints.add(latLng);
         }
         else {
             CameraPosition position2 = new CameraPosition(latLng,15,0,10);
@@ -372,6 +373,33 @@ public class MainActivity extends AppCompatActivity
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+    }
+
+    public void saveReportInformation() {
+//        DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+//        Calendar cal = Calendar.getInstance();
+//        if(MarkerPoints == null || MarkerPoints.isEmpty() || MarkerPoints.size() != 2){
+//            Toast.makeText(MainActivity.this, "Please selete the road to be reported!", Toast.LENGTH_LONG);
+//            return;
+//        }
+//        LatLng origin = MarkerPoints.get(0);
+//        LatLng dest = MarkerPoints.get(1);
+
+        String googleApiClient = "Test";
+        String timeOfReport = "date";
+        int status = 1;
+//        float originLat = (float)origin.latitude;
+//        float originLng = (float)origin.longitude;
+//        float destinationLat = (float)dest.latitude;
+//        float destinationLng = (float)dest.longitude;
+        int typeOfReportId = 2;
+        //TODO: typeOfReportId is hard coded and should not be!
+
+        //ReportInformation reportInformation = new ReportInformation(googleApiClient, timeOfReport,
+        //        status, originLat, originLng, destinationLat, destinationLng, typeOfReportId);
+        //databaseReference.child(googleApiClient).setValue(reportInformation);
+        idReference.setValue("new");
+        Log.i(TAG, "saveReportInformation: " + timeOfReport);
     }
 
     /**
