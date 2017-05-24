@@ -2,6 +2,8 @@ package com.example.abidat.trafficmenu;
 
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,7 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -41,17 +42,13 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -59,11 +56,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    private DatabaseReference rootReference = firebaseDatabase.getReference();
-    private DatabaseReference idReference = rootReference.child("id");
-    private DatabaseReference originReference = rootReference.child("origin");
-
+    Marker marker;
     ArrayList<LatLng> MarkerPoints;
     SupportMapFragment supportMapFragment;
     private GoogleMap mMap;
@@ -71,28 +64,67 @@ public class MainActivity extends AppCompatActivity
     Location mLastLocation;
     LocationRequest mLocationRequest;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private boolean reportMode;
     private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(NetworkAvailability.isNetworkAvailable(this)==false){
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle("Alert");
+            alertDialog.setMessage("Please make sure you have and Internet connection!");
+            alertDialog.setIcon(R.drawable.warning);
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            System.exit(0);
+                        }
+                    });
+            alertDialog.show();
+        }
         setContentView(R.layout.activity_main);
 
+        MarkerPoints = new ArrayList<>();
         supportMapFragment = SupportMapFragment.newInstance();
+
+        GetAdertisingId getAdertisingId = new GetAdertisingId(this);
+        getAdertisingId.execute();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveReportInformation();
-                Snackbar.make(view, "Blocked road successfully reported!", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                LatLng origin = MarkerPoints.get(0);
+                LatLng dest = MarkerPoints.get(1);
+                String method = "report";
+                DatabaseBackgroundTasks databaseBackgroundTasks = new DatabaseBackgroundTasks(MainActivity.this);
+                databaseBackgroundTasks.execute(method,Identifiers.android_id,"1",String.valueOf(origin.latitude),
+                        String.valueOf(origin.longitude),String.valueOf(dest.latitude),
+                        String.valueOf(dest.longitude));
+
+                Log.i(TAG, "onClick: androidId is:" + Identifiers.android_id);
+                marker.remove();
+                fab.hide();
+                FloatingActionButton floatingActionButtonRemove = (FloatingActionButton) findViewById(R.id.btnRemove);
+
+                floatingActionButtonRemove.setVisibility(View.VISIBLE);
+
+                mMap.getUiSettings().setAllGesturesEnabled(true);
+
+//                UrlGetSet urlGetSet = new UrlGetSet();
+//                String url = urlGetSet.getUrl(origin, dest);
+//                FetchUrl FetchUrl = new FetchUrl();
+//                // Start downloading json data from Google Directions API
+//                FetchUrl.execute(url);
             }
         });
 
+        //TODO: CHANGE THE MENU AND COLORS
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -105,7 +137,6 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
-        MarkerPoints = new ArrayList<>();
         supportMapFragment.getMapAsync(this);
         android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
 
@@ -122,6 +153,16 @@ public class MainActivity extends AppCompatActivity
         mMap = googleMap;
         MapStateManager mapStateManager = new MapStateManager(this);
         mMap.setMapType(mapStateManager.getMapType());
+        CameraPosition cameraPosition = mapStateManager.getSavedCameraPosition();
+        if(cameraPosition!=null) {
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+            mMap.moveCamera(cameraUpdate);
+            Log.i(TAG, "onMapReady: Camera changed!" + cameraPosition);
+        }
+        else {
+            Log.i(TAG, "onMapReady: No previous session!");
+        }
+        
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -137,52 +178,82 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onMapReady: Location set!");
         }
 
+        //OnMyLocationButton will enable user to switch modes
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                if(reportMode){
+                    reportMode = false;
+                    mMap.getUiSettings().setAllGesturesEnabled(true);
+                    Toast.makeText(MainActivity.this,"You are now in Viewer mode. Press the Location Button to enter Report Mode!",Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    mMap.getUiSettings().setAllGesturesEnabled(false);
+                    reportMode = true;
+                    Toast.makeText(MainActivity.this,"You are now in Report mode. Press the Location Button to enter Viewer Mode!",Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+        });
+
+        // Setting onclick event listener for the map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
                 // Already two locations
-                if (MarkerPoints.size() > 1) {
-                    MarkerPoints.clear();
-                    mMap.clear();
+                if(reportMode){
+                    if (MarkerPoints.size() > 1) {
+                        if(findViewById(R.id.fab).getVisibility() == View.VISIBLE){
+                            MarkerPoints.clear();
+                            mMap.clear();
+                            findViewById(R.id.fab).setVisibility(View.INVISIBLE);
+                        }
+                        else {
+                            Toast.makeText(MainActivity.this,"Please wait 15 minutes to report again, or remove your previous report!",Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+                    // Adding new item to the ArrayList
+                    MarkerPoints.add(point);
+
+                    // Creating MarkerOptions
+                    MarkerOptions options = new MarkerOptions();
+
+                    // Setting the position of the marker
+                    options.position(point);
+
+                    /**
+                     * For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
+                     */
+                    if (MarkerPoints.size() == 1) {
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    } else if (MarkerPoints.size() == 2) {
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                        marker.remove();
+                    }
+                    // Add new marker to the Google Map Android API V2
+                    marker = mMap.addMarker(options);
+                    //marker.remove();
+
+                    // Checks, whether start and end locations are captured
+                    if (MarkerPoints.size() >= 2) {
+                        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+                        fab.setVisibility(View.VISIBLE);
+
+                        LatLng origin = MarkerPoints.get(0);
+                        LatLng dest = MarkerPoints.get(1);
+                        // Getting URL to the Google Directions API
+                        UrlGetSet urlGetSet = new UrlGetSet();
+                        String url = urlGetSet.getUrl(origin, dest);
+                        Log.d("onMapClick", url.toString());
+
+                        FetchUrl FetchUrl = new FetchUrl();
+                        // Start downloading json data from Google Directions API
+                        FetchUrl.execute(url);
+                    }
                 }
-
-                // Adding new item to the ArrayList
-                MarkerPoints.add(point);
-
-                // Creating MarkerOptions
-                MarkerOptions options = new MarkerOptions();
-
-                // Setting the position of the marker
-                options.position(point);
-
-                /**
-                 * For the start location, the color of marker is GREEN and
-                 * for the end location, the color of marker is RED.
-                 */
-                if (MarkerPoints.size() == 1) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else if (MarkerPoints.size() == 2) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                }
-                // Add new marker to the Google Map Android API V2
-                mMap.addMarker(options);
-
-                // Checks, whether start and end locations are captured
-                if (MarkerPoints.size() >= 2) {
-                    LatLng origin = MarkerPoints.get(0);
-                    LatLng dest = MarkerPoints.get(1);
-
-                    // Getting URL to the Google Directions API
-                    UrlGetSet urlGetSet = new UrlGetSet();
-                    String url = urlGetSet.getUrl(origin, dest);
-                    Log.d("onMapClick", url);
-                    FetchUrl FetchUrl = new FetchUrl();
-
-                    // Start downloading json data from Google Directions API
-                    FetchUrl.execute(url);
-                    //move map camera
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(origin));
-                    mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                else {
+                    return;
                 }
             }
         });
@@ -197,9 +268,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         if (id == R.id.settings_normal) {
@@ -219,19 +287,49 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_home) {
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
+            android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
+            fragmentManager1.beginTransaction().show(supportMapFragment).commit();
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_personal_history) {
+            String method = "getreport";
+            DatabaseBackgroundTasks databaseBackgroundTasks = new DatabaseBackgroundTasks(MainActivity.this);
+            databaseBackgroundTasks.execute(method,Identifiers.android_id);
+
+        } else if (id == R.id.nav_history) {
 
         } else if (id == R.id.nav_manage) {
 
-        } else if (id == R.id.nav_share) {
+        }
+        else if (id == R.id.nav_share) {
+            ReportList fr = new ReportList();
 
-        } else if (id == R.id.nav_send) {
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+            android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
 
+            fragmentManager1.beginTransaction().hide(supportMapFragment).commit();
+
+            fragmentTransaction.show(fr);
+            fragmentTransaction.replace(R.id.frame_content, fr);
+            fragmentTransaction.commit();
+
+        }
+        else if (id == R.id.nav_aboutus) {
+            AboutUsFragment fr = new AboutUsFragment();
+
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+            android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
+
+            fragmentManager1.beginTransaction().hide(supportMapFragment).commit();
+
+            fragmentTransaction.show(fr);
+            fragmentTransaction.replace(R.id.frame_content, fr);
+            fragmentTransaction.commit();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -350,10 +448,6 @@ public class MainActivity extends AppCompatActivity
         mLastLocation = location;
         //Place current location marker
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
 
         MapStateManager mapStateManager = new MapStateManager(this);
         CameraPosition position = mapStateManager.getSavedCameraPosition();
@@ -363,7 +457,7 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onLocationChanged: Application loaded a previous session!");
         }
         else {
-            CameraPosition position2 = new CameraPosition(latLng,15,0,10);
+            CameraPosition position2 = new CameraPosition(latLng,15,0,0);
             CameraUpdate cameraUpdate2 = CameraUpdateFactory.newCameraPosition(position2);
             mMap.moveCamera(cameraUpdate2);
             Log.i(TAG, "onLocationChanged: Application started a new session!");
@@ -373,33 +467,6 @@ public class MainActivity extends AppCompatActivity
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
-    }
-
-    public void saveReportInformation() {
-//        DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-//        Calendar cal = Calendar.getInstance();
-//        if(MarkerPoints == null || MarkerPoints.isEmpty() || MarkerPoints.size() != 2){
-//            Toast.makeText(MainActivity.this, "Please selete the road to be reported!", Toast.LENGTH_LONG);
-//            return;
-//        }
-//        LatLng origin = MarkerPoints.get(0);
-//        LatLng dest = MarkerPoints.get(1);
-
-        String googleApiClient = "Test";
-        String timeOfReport = "date";
-        int status = 1;
-//        float originLat = (float)origin.latitude;
-//        float originLng = (float)origin.longitude;
-//        float destinationLat = (float)dest.latitude;
-//        float destinationLng = (float)dest.longitude;
-        int typeOfReportId = 2;
-        //TODO: typeOfReportId is hard coded and should not be!
-
-        //ReportInformation reportInformation = new ReportInformation(googleApiClient, timeOfReport,
-        //        status, originLat, originLng, destinationLat, destinationLng, typeOfReportId);
-        //databaseReference.child(googleApiClient).setValue(reportInformation);
-        idReference.setValue("new");
-        Log.i(TAG, "saveReportInformation: " + timeOfReport);
     }
 
     /**
@@ -419,6 +486,15 @@ public class MainActivity extends AppCompatActivity
      * Fetches data from url passed
      */
     private class FetchUrl extends AsyncTask<String, Void, String> {
+        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.setMessage("Finding the shortest route!");
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.show();
+        }
 
         @Override
         protected String doInBackground(String... url) {
@@ -444,6 +520,7 @@ public class MainActivity extends AppCompatActivity
 
             // Invokes the thread for parsing the JSON data
             parserTask.execute(result);
+            progressDialog.cancel();
         }
     }
 
@@ -511,11 +588,10 @@ public class MainActivity extends AppCompatActivity
             // UrlGetSet polyline in the Google Map for the i-th route
             if(lineOptions != null) {
                 mMap.addPolyline(lineOptions);
-                MapStateManager mapStateManager = new MapStateManager(getApplicationContext());
-                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(mapStateManager.getSavedCameraPosition()));
+                marker.remove();
             }
             else {
-                Log.d("onPostExecute","without Polylines drawn");
+                Toast.makeText(getApplicationContext(), "Lines not drawn!", Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -17,7 +17,6 @@ public class MapStateManager {
     private static final String MAPTYPE = "maptype";
 
     private static final String PREFS_NAME = "mapCameraState";
-
     private SharedPreferences mapStatePrefs;
 
 
@@ -46,14 +45,12 @@ public class MapStateManager {
     }
 
     public CameraPosition getSavedCameraPosition(){
-        double latitude = mapStatePrefs.getFloat(LATITUDE, 0);
-        if(latitude == 0){
-            return null;
-        }
-        double longitude = mapStatePrefs.getFloat(LONGITUDE, 0);
+
+        double latitude = mapStatePrefs.getFloat(LATITUDE,(float)42.6484899);
+        double longitude = mapStatePrefs.getFloat(LONGITUDE, (float)21.1670806);
         LatLng target = new LatLng(latitude,longitude);
 
-        float zoom = mapStatePrefs.getFloat(ZOOM, 0);
+        float zoom = mapStatePrefs.getFloat(ZOOM, 15);
         float bearing = mapStatePrefs.getFloat(BEARING, 0);
         float tilt = mapStatePrefs.getFloat(TILT, 0);
 

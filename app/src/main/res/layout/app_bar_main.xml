@@ -31,6 +31,16 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/barricade"
         app:backgroundTint="@android:color/transparent"
+        android:visibility="invisible"
+        />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btnRemove"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="right|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/cast_ic_expanded_controller_play"
+        android:visibility="invisible"
         />
     <!-- @null osht menyra tjeter -->
 

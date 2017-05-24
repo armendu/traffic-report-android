@@ -4,15 +4,12 @@
 
         <item
             android:id="@+id/settings_normal"
-            android:icon="@drawable/ic_menu_camera"
             android:title="Normal"
             app:showAsAction="never"/>
         <item
             android:id="@+id/settings_satelite"
-            android:icon="@drawable/ic_menu_gallery"
             android:title="Satelite" />
         <item
             android:id="@+id/settings_terrain"
-            android:icon="@drawable/ic_menu_slideshow"
             android:title="Terrain" />
 </menu>

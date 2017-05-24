@@ -5,4 +5,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="about_us"><b>Traffic Report</b> - v1.0 \n\nThis application was made by two students: Armend Ukehaxhaj and Arton Hoti as part of their project in "Programming in mobile devices".\n\n© Armend Ukehaxhaj\nArmend.u@hotmail.com \n\n© Arton Hoti\nArti._3@hotmail.com "</string>
+    <string name="pershkrimi_Opsione">Ketu mund te ndryshoni kohen e fshirjes se nje raporti</string>
+    <string name="Settings_CaktoKohenAuto">Cakto minutat se kur deshironi te fshihet automatikisht raporti:</string>
 </resources>
