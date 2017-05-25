@@ -124,7 +124,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        //TODO: CHANGE THE MENU AND COLORS
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -294,17 +293,8 @@ public class MainActivity extends AppCompatActivity
             android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
             fragmentManager1.beginTransaction().show(supportMapFragment).commit();
 
-        } else if (id == R.id.nav_personal_history) {
-            String method = "getreport";
-            DatabaseBackgroundTasks databaseBackgroundTasks = new DatabaseBackgroundTasks(MainActivity.this);
-            databaseBackgroundTasks.execute(method,Identifiers.android_id);
-
-        } else if (id == R.id.nav_history) {
-
-        } else if (id == R.id.nav_manage) {
-
         }
-        else if (id == R.id.nav_share) {
+        else if (id == R.id.nav_personal_history) {
             ReportList fr = new ReportList();
 
             FragmentManager fm = getFragmentManager();
@@ -316,6 +306,15 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.show(fr);
             fragmentTransaction.replace(R.id.frame_content, fr);
             fragmentTransaction.commit();
+        }
+        else if (id == R.id.nav_history) {
+
+        }
+        else if (id == R.id.nav_manage) {
+
+        }
+        else if (id == R.id.nav_share) {
+
 
         }
         else if (id == R.id.nav_aboutus) {

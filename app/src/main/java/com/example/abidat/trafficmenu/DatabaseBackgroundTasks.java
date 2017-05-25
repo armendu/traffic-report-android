@@ -2,26 +2,17 @@ package com.example.abidat.trafficmenu;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.games.stats.Stats;
-
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -49,8 +40,7 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
 
     @Override
     protected String doInBackground(String... params) {
-        String reportUrl = "http://10.0.2.2/android/report.php";
-        String getReportUrl = "http://10.0.2.2/android/getreport.php";
+        String reportUrl = "http://192.168.1.136/android/report.php";
 
         String method = params[0];
         if(method.equals("report")){
@@ -94,48 +84,6 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
                 e.printStackTrace();
                 Log.i(TAG, "doInBackground: IOException " + e);
                 return "Reporting failed";
-            }
-        }
-        else if(method.equals("getreport")){
-            String androidId = params[1];
-
-            try {
-                URL url = new URL(getReportUrl);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setDoInput(true);
-
-                OutputStream outputStream = httpURLConnection.getOutputStream();
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-
-                String dataEncoded = URLEncoder.encode("googleapiclient","UTF-8") + "=" + URLEncoder.encode(androidId,"UTF-8");
-                bufferedWriter.write(dataEncoded);
-                bufferedWriter.flush();
-                bufferedWriter.close();
-                outputStream.close();
-
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"));
-
-                String response = "";
-                String line = "";
-
-                while((line = bufferedReader.readLine())!=null){
-
-                    response += line;
-                }
-                bufferedReader.close();
-                inputStream.close();
-                httpURLConnection.disconnect();
-                return response;
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (ProtocolException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         return null;
