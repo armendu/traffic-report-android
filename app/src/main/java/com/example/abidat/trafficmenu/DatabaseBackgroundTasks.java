@@ -91,14 +91,16 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPostExecute(String result) {
-        if(result == "Report was successfully saved!"){
-            progressDialog.setIcon(R.drawable.insert_success);
+        if(result != null){
+            if(result == "Report was successfully saved!"){
+                progressDialog.setIcon(R.drawable.insert_success);
+            }
+            else {
+                progressDialog.setIcon(R.drawable.insert_failed);
+            }
+            progressDialog.setMessage(result);
+            progressDialog.cancel();
+            Toast.makeText(context,result,Toast.LENGTH_LONG).show();
         }
-        else {
-            progressDialog.setIcon(R.drawable.insert_failed);
-        }
-        progressDialog.setMessage(result);
-        progressDialog.cancel();
-        Toast.makeText(context,result,Toast.LENGTH_LONG).show();
     }
 }

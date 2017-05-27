@@ -1,8 +1,10 @@
 package com.example.abidat.trafficmenu;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,33 +33,33 @@ import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
 
-public class ReportList extends Fragment {
+public class AllReportsList extends Fragment {
     ArrayAdapter<String> listViewAdapter;
     ArrayList<String> resultList;
-    public ReportList() {
+    public AllReportsList() {
         //empty constructor required
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         //Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.activity_report_list, container, false);
+        View rootView = inflater.inflate(R.layout.all_reports_list, container, false);
 
-        String method = "getreports";
+        String method = "getreport";
         DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DatabaseBackgroundTasks2(getContext());
         databaseBackgroundTasks2.execute(method,Identifiers.android_id);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        ListView listView = (ListView) rootView.findViewById(R.id.list);
+        ListView listView = (ListView) rootView.findViewById(R.id.list2);
+        listView.setDividerHeight(15);
 
         listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
 
-        listView.setDividerHeight(10);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -88,11 +90,11 @@ public class ReportList extends Fragment {
         @Override
         protected String doInBackground(String... params) {
 
-            String getReportUrl = "http://192.168.0.104/android/getreport.php";
+            String getReportUrl = "http://192.168.0.104/android/getallreports.php";
 
             String method = params[0];
 
-            if(method.equals("getreports")){
+            if(method.equals("getreport")){
                 String androidId = params[1];
 
                 try {
@@ -157,5 +159,3 @@ public class ReportList extends Fragment {
         }
     }
 }
-
-

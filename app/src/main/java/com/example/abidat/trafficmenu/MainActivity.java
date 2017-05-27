@@ -308,7 +308,17 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.commit();
         }
         else if (id == R.id.nav_history) {
+            AllReportsList fr = new AllReportsList();
 
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+            android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
+
+            fragmentManager1.beginTransaction().hide(supportMapFragment).commit();
+
+            fragmentTransaction.show(fr);
+            fragmentTransaction.replace(R.id.frame_content, fr);
+            fragmentTransaction.commit();
         }
         else if (id == R.id.nav_manage) {
 
