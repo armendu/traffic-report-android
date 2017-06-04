@@ -110,9 +110,6 @@ public class MainActivity extends AppCompatActivity
                 Log.i(TAG, "onClick: androidId is:" + Identifiers.android_id);
                 marker.remove();
                 fab.hide();
-                FloatingActionButton floatingActionButtonRemove = (FloatingActionButton) findViewById(R.id.btnRemove);
-
-                floatingActionButtonRemove.setVisibility(View.VISIBLE);
 
                 mMap.getUiSettings().setAllGesturesEnabled(true);
 
@@ -187,7 +184,9 @@ public class MainActivity extends AppCompatActivity
                     Toast.makeText(MainActivity.this,"You are now in Viewer mode. Press the Location Button to enter Report Mode!",Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    mMap.getUiSettings().setAllGesturesEnabled(false);
+                    mMap.getUiSettings().setScrollGesturesEnabled(false);
+                    mMap.getUiSettings().setTiltGesturesEnabled(false);
+                    mMap.setMinZoomPreference(16);
                     reportMode = true;
                     Toast.makeText(MainActivity.this,"You are now in Report mode. Press the Location Button to enter Viewer Mode!",Toast.LENGTH_SHORT).show();
                 }
@@ -321,7 +320,17 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.commit();
         }
         else if (id == R.id.nav_manage) {
+            DeleteReport fr = new DeleteReport();
 
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+            android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
+
+            fragmentManager1.beginTransaction().hide(supportMapFragment).commit();
+
+            fragmentTransaction.show(fr);
+            fragmentTransaction.replace(R.id.frame_content, fr);
+            fragmentTransaction.commit();
         }
         else if (id == R.id.nav_share) {
 

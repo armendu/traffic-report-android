@@ -8,4 +8,5 @@
     android:textAppearance="?android:attr/textAppearanceListItem"
     android:gravity="center_vertical"
     android:text="Report Details"
-    />
+    >
+</TextView>

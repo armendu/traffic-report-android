@@ -65,10 +65,10 @@ public class AllReportsList extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Toast.makeText(getContext(), resultList.get(position), Toast.LENGTH_SHORT).show();
                 String[] parts = resultList.get(position).split("\n");
-                String part1 = parts[0];
+                //String part1 = parts[0];
                 String part2 = parts[1];
-                String part3 = parts[2];
-                String part4 = parts[3];
+                //String part3 = parts[2];
+                //String part4 = parts[3];
 
                 Toast.makeText(getContext(), part2, Toast.LENGTH_SHORT).show();
             }
@@ -100,6 +100,8 @@ public class AllReportsList extends Fragment {
                 try {
                     URL url = new URL(getReportUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setConnectTimeout(5000);
+                    httpURLConnection.setReadTimeout(5000);
                     httpURLConnection.setRequestMethod("POST");
                     httpURLConnection.setDoOutput(true);
                     httpURLConnection.setDoInput(true);

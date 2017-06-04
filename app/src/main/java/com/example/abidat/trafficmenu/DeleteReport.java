@@ -1,11 +1,11 @@
 package com.example.abidat.trafficmenu;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,22 +30,26 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
+//TODO: Select * from reported routes where time<15min and id = android_id, and allow those to be deleted
+//TODO: nav_tools will serve for that purpose
+//TODO: Send also the reported routes id so that it can be identified!!
 
-public class ReportList extends Fragment {
+public class DeleteReport extends Fragment{
     ArrayAdapter<String> listViewAdapter;
     ArrayList<String> resultList;
-    public ReportList() {
+    String reportId;
+    String method;
+    public DeleteReport() {
         //empty constructor required
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         //Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.activity_report_list, container, false);
+        View rootView = inflater.inflate(R.layout.delete_report, container, false);
 
-        String method = "getreports";
-        DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DatabaseBackgroundTasks2(getContext());
-        databaseBackgroundTasks2.execute(method,Identifiers.android_id);
+        DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
+        databaseBackgroundTasks2.execute("deletereports",Identifiers.android_id);
 
         try {
             Thread.sleep(2000);
@@ -53,7 +57,7 @@ public class ReportList extends Fragment {
             e.printStackTrace();
         }
 
-        ListView listView = (ListView) rootView.findViewById(R.id.list);
+        final ListView listView = (ListView) rootView.findViewById(R.id.list3);
 
         listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
 
@@ -61,14 +65,10 @@ public class ReportList extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getContext(), resultList.get(position), Toast.LENGTH_SHORT).show();
-                String[] parts = resultList.get(position).split("\n");
-                String part1 = parts[0];
-                String part2 = parts[1];
-                String part3 = parts[2];
-                String part4 = parts[3];
+                DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
+                databaseBackgroundTasks2.execute("deleteSingleReport",Identifiers.android_id);
 
-                Toast.makeText(getContext(), part2, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), reportId, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -88,15 +88,16 @@ public class ReportList extends Fragment {
         @Override
         protected String doInBackground(String... params) {
 
-            String getReportUrl = "http://10.0.2.2/android/getreport.php";
+            String deleteReportsUrl = "http://10.0.2.2/android/deletereports.php";
+            String deleteSingleReportUrl = "http://10.0.2.2/android/deletereport.php";
 
-            String method = params[0];
+            method = params[0];
 
-            if(method.equals("getreports")){
+            if(method.equals("deletereports")){
                 String androidId = params[1];
 
                 try {
-                    URL url = new URL(getReportUrl);
+                    URL url = new URL(deleteReportsUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                     httpURLConnection.setConnectTimeout(5000);
                     httpURLConnection.setReadTimeout(5000);
@@ -122,10 +123,11 @@ public class ReportList extends Fragment {
                     resultList = new ArrayList<>();
                     while((line = bufferedReader.readLine())!=null){
                         String[] parts = line.split(";");
-                        String part1 = parts[0];
-                        String part2 = parts[1];
-                        String part3 = parts[2];
-                        String part4 = parts[3];
+                        reportId = parts[0];
+                        String part1 = parts[1];
+                        String part2 = parts[2];
+                        String part3 = parts[3];
+                        String part4 = parts[4];
 
                         resultList.add(part1 + "\n" + part2 + "\n" + part3 + "\n" + part4);
                         response += line;
@@ -135,7 +137,7 @@ public class ReportList extends Fragment {
                     inputStream.close();
                     httpURLConnection.disconnect();
 
-                    return "Report was successfully saved!";
+                    return "Reports were successfully loaded!";
 
                 } catch (MalformedURLException e) {
                     Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
@@ -151,6 +153,41 @@ public class ReportList extends Fragment {
                     e.printStackTrace();
                 }
             }
+            else if(method.equals("deleteSingleReport")){
+                String androidId = params[1];
+                try {
+                    URL url = new URL(deleteSingleReportUrl);
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setConnectTimeout(5000);
+                    httpURLConnection.setReadTimeout(5000);
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+
+                    OutputStream outputStream = httpURLConnection.getOutputStream();
+                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+
+                    String dataEncoded = URLEncoder.encode("reportid","UTF-8") + "=" + URLEncoder.encode(reportId,"UTF-8");
+                    bufferedWriter.write(dataEncoded);
+                    bufferedWriter.flush();
+                    bufferedWriter.close();
+                    outputStream.close();
+
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    inputStream.close();
+                    httpURLConnection.disconnect();
+                    return "Report was successfully removed!";
+
+                } catch (MalformedURLException e) {
+                    Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
             return "Failed";
         }
 
@@ -158,10 +195,13 @@ public class ReportList extends Fragment {
         protected void onPostExecute(String result) {
             if(listViewAdapter != null){
                 listViewAdapter.notifyDataSetChanged();
+            }
+            if(method.equals("deletereports")){
                 Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_LONG).show();
+            }
+            else {
+                Toast.makeText(this.context,"Removed successfully",Toast.LENGTH_LONG).show();
             }
         }
     }
 }
-
-

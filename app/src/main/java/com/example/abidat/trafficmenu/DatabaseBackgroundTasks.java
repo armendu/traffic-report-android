@@ -40,7 +40,7 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
 
     @Override
     protected String doInBackground(String... params) {
-        String reportUrl = "http://192.168.1.136/android/report.php";
+        String reportUrl = "http://10.0.2.2/android/report.php";
 
         String method = params[0];
         if(method.equals("report")){
@@ -53,6 +53,8 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
             try {
                 URL url = new URL(reportUrl);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setConnectTimeout(5000);
+                httpURLConnection.setReadTimeout(5000);
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
                 OutputStream outputStream = httpURLConnection.getOutputStream();
