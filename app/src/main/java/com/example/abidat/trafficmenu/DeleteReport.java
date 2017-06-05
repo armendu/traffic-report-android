@@ -1,11 +1,12 @@
 package com.example.abidat.trafficmenu;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,10 +66,18 @@ public class DeleteReport extends Fragment{
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
-                databaseBackgroundTasks2.execute("deleteSingleReport",Identifiers.android_id);
-
-                Toast.makeText(getContext(), reportId, Toast.LENGTH_SHORT).show();
+                AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+                alertDialog.setTitle("Alert");
+                alertDialog.setMessage("Are you sure you want to delete this item?");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
+                                databaseBackgroundTasks2.execute("deleteSingleReport",reportId);
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
             }
         });
 
@@ -199,7 +208,8 @@ public class DeleteReport extends Fragment{
             if(method.equals("deletereports")){
                 Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_LONG).show();
             }
-            else {
+            else if(method.equals("deleteSingleReport")){
+                listViewAdapter.notifyDataSetChanged();
                 Toast.makeText(this.context,"Removed successfully",Toast.LENGTH_LONG).show();
             }
         }

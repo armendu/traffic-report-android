@@ -1,7 +1,6 @@
 package com.example.abidat.trafficmenu;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,6 +53,7 @@ public class ReportList extends Fragment {
         }
 
         ListView listView = (ListView) rootView.findViewById(R.id.list);
+        listView.setDividerHeight(15);
 
         listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
 
@@ -61,7 +61,6 @@ public class ReportList extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getContext(), resultList.get(position), Toast.LENGTH_SHORT).show();
                 String[] parts = resultList.get(position).split("\n");
                 String part1 = parts[0];
                 String part2 = parts[1];

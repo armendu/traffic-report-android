@@ -50,7 +50,7 @@ public class AllReportsList extends Fragment {
         databaseBackgroundTasks2.execute(method,Identifiers.android_id);
 
         try {
-            Thread.sleep(3000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -90,7 +90,7 @@ public class AllReportsList extends Fragment {
         @Override
         protected String doInBackground(String... params) {
 
-            String getReportUrl = "http://192.168.0.104/android/getallreports.php";
+            String getReportUrl = "http://10.0.2.2/android/getallreports.php";
 
             String method = params[0];
 
