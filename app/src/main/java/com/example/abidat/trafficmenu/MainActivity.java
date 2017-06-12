@@ -5,6 +5,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -52,6 +53,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.example.abidat.trafficmenu.R.string.aboutus;
+import static com.example.abidat.trafficmenu.R.string.allhistory;
+import static com.example.abidat.trafficmenu.R.string.app_name;
+import static com.example.abidat.trafficmenu.R.string.delete;
+import static com.example.abidat.trafficmenu.R.string.history;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -63,14 +70,15 @@ public class MainActivity extends AppCompatActivity
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     LocationRequest mLocationRequest;
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private boolean reportMode;
     private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(NetworkAvailability.isNetworkAvailable(this)==false){
+        // Check for network availability
+        if(!NetworkAvailability.isNetworkAvailable(this)){
             AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
             alertDialog.setTitle("Alert");
             alertDialog.setMessage("Please make sure you have and Internet connection!");
@@ -79,7 +87,7 @@ public class MainActivity extends AppCompatActivity
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
-                            System.exit(0);
+                            System.exit(0); //Exit the application
                         }
                     });
             alertDialog.show();
@@ -89,12 +97,14 @@ public class MainActivity extends AppCompatActivity
         MarkerPoints = new ArrayList<>();
         supportMapFragment = SupportMapFragment.newInstance();
 
+        // Set the Identifier.androidId which is the advertising Id of the android device
         GetAdertisingId getAdertisingId = new GetAdertisingId(this);
         getAdertisingId.execute();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //TODO: Fix the visibility of the floating action bar
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,15 +119,10 @@ public class MainActivity extends AppCompatActivity
 
                 Log.i(TAG, "onClick: androidId is:" + Identifiers.android_id);
                 marker.remove();
+
+                //TODO: FIX HERE
                 fab.hide();
-
                 mMap.getUiSettings().setAllGesturesEnabled(true);
-
-//                UrlGetSet urlGetSet = new UrlGetSet();
-//                String url = urlGetSet.getUrl(origin, dest);
-//                FetchUrl FetchUrl = new FetchUrl();
-//                // Start downloading json data from Google Directions API
-//                FetchUrl.execute(url);
             }
         });
 
@@ -130,6 +135,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        //TODO: Document the Fragment Manager class
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
@@ -139,8 +145,30 @@ public class MainActivity extends AppCompatActivity
         fragmentManager1.beginTransaction().add(R.id.map,supportMapFragment).commit();
         fragmentManager1.beginTransaction().show(supportMapFragment).commit();
 
+        // If android is Android Marshmallow or above
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
+        }
+
+        //TODO: FIX HERE
+        Intent i = getIntent();
+        // Receiving the Data
+        if(i.hasExtra("originlat")){
+            String originlat = i.getStringExtra("originlat");
+            String originlng = i.getStringExtra("originlng");
+            String destinationlat = i.getStringExtra("destinationlat");
+            String destinationlng = i.getStringExtra("destinationlng");
+
+            LatLng origin = new LatLng(Double.parseDouble(originlat),Double.parseDouble(originlng));
+            LatLng dest = new LatLng(Double.parseDouble(destinationlat),Double.parseDouble(destinationlng));
+            // Getting URL to the Google Directions API
+            UrlGetSet urlGetSet = new UrlGetSet();
+            String url = urlGetSet.getUrl(origin, dest);
+            Log.d("onMapClick", url.toString());
+
+            FetchUrl FetchUrl = new FetchUrl();
+            // Start downloading json data from Google Directions API
+            FetchUrl.execute(url);
         }
     }
 
@@ -174,13 +202,14 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onMapReady: Location set!");
         }
 
-        //OnMyLocationButton will enable user to switch modes
+        // OnMyLocationButton will enable users to switch modes
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
                 if(reportMode){
                     reportMode = false;
                     mMap.getUiSettings().setAllGesturesEnabled(true);
+                    mMap.resetMinMaxZoomPreference();
                     Toast.makeText(MainActivity.this,"You are now in Viewer mode. Press the Location Button to enter Report Mode!",Toast.LENGTH_SHORT).show();
                 }
                 else {
@@ -198,8 +227,9 @@ public class MainActivity extends AppCompatActivity
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
-                // Already two locations
+                // Is user in report mode
                 if(reportMode){
+                    // Already two locations
                     if (MarkerPoints.size() > 1) {
                         if(findViewById(R.id.fab).getVisibility() == View.VISIBLE){
                             MarkerPoints.clear();
@@ -207,6 +237,7 @@ public class MainActivity extends AppCompatActivity
                             findViewById(R.id.fab).setVisibility(View.INVISIBLE);
                         }
                         else {
+                            //TODO: Fix with database
                             Toast.makeText(MainActivity.this,"Please wait 15 minutes to report again, or remove your previous report!",Toast.LENGTH_LONG).show();
                             return;
                         }
@@ -221,7 +252,8 @@ public class MainActivity extends AppCompatActivity
                     options.position(point);
 
                     /**
-                     * For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
+                     * For the start location, the color of marker is GREEN
+                     * and for the end location the color of marker is RED.
                      */
                     if (MarkerPoints.size() == 1) {
                         options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
@@ -267,7 +299,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
+        // Change the map type
         if (id == R.id.settings_normal) {
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         }
@@ -284,14 +316,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
-
+        //Main Menu
         if (id == R.id.nav_home) {
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
             android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
             fragmentManager1.beginTransaction().show(supportMapFragment).commit();
-
+            setTitle(getString(app_name));
         }
         else if (id == R.id.nav_personal_history) {
             ReportList fr = new ReportList();
@@ -305,6 +337,7 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.show(fr);
             fragmentTransaction.replace(R.id.frame_content, fr);
             fragmentTransaction.commit();
+            setTitle(getString(history));
         }
         else if (id == R.id.nav_history) {
             AllReportsList fr = new AllReportsList();
@@ -318,6 +351,7 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.show(fr);
             fragmentTransaction.replace(R.id.frame_content, fr);
             fragmentTransaction.commit();
+            setTitle(getString(allhistory));
         }
         else if (id == R.id.nav_manage) {
             DeleteReport fr = new DeleteReport();
@@ -331,10 +365,10 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.show(fr);
             fragmentTransaction.replace(R.id.frame_content, fr);
             fragmentTransaction.commit();
+            setTitle(getString(delete));
         }
         else if (id == R.id.nav_share) {
-
-
+            //TODO: ADD FEATURE
         }
         else if (id == R.id.nav_aboutus) {
             AboutUsFragment fr = new AboutUsFragment();
@@ -348,6 +382,7 @@ public class MainActivity extends AppCompatActivity
             fragmentTransaction.show(fr);
             fragmentTransaction.replace(R.id.frame_content, fr);
             fragmentTransaction.commit();
+            setTitle(getString(aboutus));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -399,6 +434,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        //Make request to get the users location
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
@@ -501,7 +537,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * Fetches data from url passed
+     * Fetches data from the url that was passed to it
      */
     private class FetchUrl extends AsyncTask<String, Void, String> {
         ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
@@ -543,7 +579,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * New thread
+     * New thread to get the shortest route
      */
     public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
         // Parsing the data in non-ui thread
@@ -553,7 +589,6 @@ public class MainActivity extends AppCompatActivity
             JSONObject jObject;
             List<List<HashMap<String, String>>>
                     routes = null;
-
             try {
                 jObject = new JSONObject(jsonData[0]);
                 Log.d("ParserTask",jsonData[0].toString());
@@ -606,7 +641,9 @@ public class MainActivity extends AppCompatActivity
             // UrlGetSet polyline in the Google Map for the i-th route
             if(lineOptions != null) {
                 mMap.addPolyline(lineOptions);
-                marker.remove();
+                if(marker!=null){
+                    marker.remove();
+                }
             }
             else {
                 Toast.makeText(getApplicationContext(), "Lines not drawn!", Toast.LENGTH_SHORT).show();

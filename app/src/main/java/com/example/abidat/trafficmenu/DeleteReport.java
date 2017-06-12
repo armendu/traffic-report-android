@@ -31,9 +31,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
-//TODO: Select * from reported routes where time<15min and id = android_id, and allow those to be deleted
-//TODO: nav_tools will serve for that purpose
-//TODO: Send also the reported routes id so that it can be identified!!
 
 public class DeleteReport extends Fragment{
     ArrayAdapter<String> listViewAdapter;
@@ -49,8 +46,8 @@ public class DeleteReport extends Fragment{
         //Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.delete_report, container, false);
 
-        DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
-        databaseBackgroundTasks2.execute("deletereports",Identifiers.android_id);
+        DeleteReport.DatabaseBackgroundDeleteReports databaseBackgroundDeleteReports = new DeleteReport.DatabaseBackgroundDeleteReports(getContext());
+        databaseBackgroundDeleteReports.execute("deletereports",Identifiers.android_id);
 
         try {
             Thread.sleep(2000);
@@ -72,25 +69,24 @@ public class DeleteReport extends Fragment{
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                DeleteReport.DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DeleteReport.DatabaseBackgroundTasks2(getContext());
-                                databaseBackgroundTasks2.execute("deleteSingleReport",reportId);
+                                DeleteReport.DatabaseBackgroundDeleteReports databaseBackgroundDeleteReports = new DeleteReport.DatabaseBackgroundDeleteReports(getContext());
+                                databaseBackgroundDeleteReports.execute("deleteSingleReport",reportId);
                                 dialog.dismiss();
                             }
                         });
                 alertDialog.show();
             }
         });
-
         listView.setAdapter(listViewAdapter);
         Log.i(TAG, "onCreateView: " + listView);
 
         return rootView;
     }
 
-    class DatabaseBackgroundTasks2 extends AsyncTask<String,Void,String> {
+    private class DatabaseBackgroundDeleteReports extends AsyncTask<String,Void,String> {
         Context context;
 
-        DatabaseBackgroundTasks2(Context context) {
+        DatabaseBackgroundDeleteReports(Context context) {
             this.context = context;
         }
 
@@ -104,7 +100,6 @@ public class DeleteReport extends Fragment{
 
             if(method.equals("deletereports")){
                 String androidId = params[1];
-
                 try {
                     URL url = new URL(deleteReportsUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -163,7 +158,6 @@ public class DeleteReport extends Fragment{
                 }
             }
             else if(method.equals("deleteSingleReport")){
-                String androidId = params[1];
                 try {
                     URL url = new URL(deleteSingleReportUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -206,11 +200,11 @@ public class DeleteReport extends Fragment{
                 listViewAdapter.notifyDataSetChanged();
             }
             if(method.equals("deletereports")){
-                Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_LONG).show();
+                Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_SHORT).show();
             }
             else if(method.equals("deleteSingleReport")){
                 listViewAdapter.notifyDataSetChanged();
-                Toast.makeText(this.context,"Removed successfully",Toast.LENGTH_LONG).show();
+                Toast.makeText(this.context,"Removed successfully",Toast.LENGTH_SHORT).show();
             }
         }
     }

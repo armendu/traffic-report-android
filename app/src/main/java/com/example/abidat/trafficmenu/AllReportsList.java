@@ -2,9 +2,6 @@ package com.example.abidat.trafficmenu;
 
 import android.app.Fragment;
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -46,8 +43,8 @@ public class AllReportsList extends Fragment {
         View rootView = inflater.inflate(R.layout.all_reports_list, container, false);
 
         String method = "getreport";
-        DatabaseBackgroundTasks2 databaseBackgroundTasks2 = new DatabaseBackgroundTasks2(getContext());
-        databaseBackgroundTasks2.execute(method,Identifiers.android_id);
+        DatabaseBackgroundReports databaseBackgroundReports = new DatabaseBackgroundReports(getContext());
+        databaseBackgroundReports.execute(method,Identifiers.android_id);
 
         try {
             Thread.sleep(2000);
@@ -63,7 +60,6 @@ public class AllReportsList extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getContext(), resultList.get(position), Toast.LENGTH_SHORT).show();
                 String[] parts = resultList.get(position).split("\n");
                 //String part1 = parts[0];
                 String part2 = parts[1];
@@ -74,16 +70,17 @@ public class AllReportsList extends Fragment {
             }
         });
 
-        listView.setAdapter(listViewAdapter);
-        Log.i(TAG, "onCreateView: " + listView);
-
+        if(listViewAdapter!=null){
+            Log.i(TAG, "onCreateView: " + listView);
+            listView.setAdapter(listViewAdapter);
+        }
         return rootView;
     }
 
-    class DatabaseBackgroundTasks2 extends AsyncTask<String,Void,String> {
+    private class DatabaseBackgroundReports extends AsyncTask<String,Void,String> {
         Context context;
 
-        DatabaseBackgroundTasks2(Context context) {
+        DatabaseBackgroundReports(Context context) {
             this.context = context;
         }
 
@@ -140,14 +137,17 @@ public class AllReportsList extends Fragment {
                     return "Report was successfully saved!";
 
                 } catch (MalformedURLException e) {
-                    Log.i(TAG, "doInBackground: MalformedURLException :" + resultList);
+                    Log.i(TAG, "doInBackground: MalformedURLException :" + e);
                     e.printStackTrace();
+                    return "Could not retrieve data, please try again";
                 } catch (ProtocolException e) {
-                    Log.i(TAG, "doInBackground: ProtocolException :" + resultList);
+                    Log.i(TAG, "doInBackground: ProtocolException :" + e);
                     e.printStackTrace();
+                    return "Could not retrieve data, please try again";
                 } catch (IOException e) {
-                    Log.i(TAG, "doInBackground: IOException :" + resultList);
+                    Log.i(TAG, "doInBackground: IOException :" + e);
                     e.printStackTrace();
+                    return "Could not retrieve data, please try again";
                 }
             }
             return "response";

@@ -81,11 +81,11 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
             } catch (MalformedURLException e) {
                 e.printStackTrace();
                 Log.i(TAG, "doInBackground: MalformedURLException " + e);
-                return "Reporting failed";
+                return "Reporting failed, please try again!";
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.i(TAG, "doInBackground: IOException " + e);
-                return "Reporting failed";
+                return "Reporting failed, please try again!";
             }
         }
         return null;
