@@ -34,3 +34,8 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     testCompile 'junit:junit:4.12'
 }
+
+configurations {
+    all*.exclude group: 'com.google.firebase', module: 'firebase-core'
+    all*.exclude group: 'com.google.firebase', module: 'firebase-iid'
+}
