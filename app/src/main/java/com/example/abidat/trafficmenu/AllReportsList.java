@@ -2,6 +2,7 @@ package com.example.abidat.trafficmenu;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,25 +15,27 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static android.content.ContentValues.TAG;
 
 public class AllReportsList extends Fragment {
     ArrayAdapter<String> listViewAdapter;
     ArrayList<String> resultList;
+    ArrayList<String> coordinatesList;
+    OkHttpClient client = new OkHttpClient();
+
     public AllReportsList() {
         //empty constructor required
     }
@@ -42,9 +45,9 @@ public class AllReportsList extends Fragment {
         //Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.all_reports_list, container, false);
 
-        String method = "getreport";
-        DatabaseBackgroundReports databaseBackgroundReports = new DatabaseBackgroundReports(getContext());
-        databaseBackgroundReports.execute(method,Identifiers.android_id);
+        String method = "getallreports";
+        AllReportsList.DatabaseBackgroundReport databaseBackgroundReport = new AllReportsList.DatabaseBackgroundReport(getContext());
+        databaseBackgroundReport.execute(method);
 
         try {
             Thread.sleep(2000);
@@ -53,110 +56,102 @@ public class AllReportsList extends Fragment {
         }
 
         ListView listView = (ListView) rootView.findViewById(R.id.list2);
-        listView.setDividerHeight(15);
 
-        listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
+        if(resultList!=null){
+            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
+        }
+        else{
+            resultList = new ArrayList<>();
+            resultList.add("No results found!");
+            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
+        }
 
+        listView.setDividerHeight(10);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String[] parts = resultList.get(position).split("\n");
-                //String part1 = parts[0];
-                String part2 = parts[1];
-                //String part3 = parts[2];
-                //String part4 = parts[3];
+                if(!resultList.get(0).equals("No results found!")){
+                    String[] parts = coordinatesList.get(position).split("\n");
+                    String originlat = parts[0];
+                    String originlng = parts[1];
+                    String destinationlat = parts[2];
+                    String destinationlng = parts[3];
 
-                Toast.makeText(getContext(), part2, Toast.LENGTH_SHORT).show();
+                    Intent mainActivityIntent = new Intent(getContext(), MainActivity.class);
+
+                    //Sending data to another Activity
+                    mainActivityIntent.putExtra("originlat", originlat);
+                    mainActivityIntent.putExtra("originlng", originlng);
+                    mainActivityIntent.putExtra("destinationlat", destinationlat);
+                    mainActivityIntent.putExtra("destinationlng", destinationlng);
+
+                    startActivity(mainActivityIntent);
+                }
             }
         });
 
-        if(listViewAdapter!=null){
-            Log.i(TAG, "onCreateView: " + listView);
-            listView.setAdapter(listViewAdapter);
-        }
+        listView.setAdapter(listViewAdapter);
+        Log.i(TAG, "onCreateView: " + listView);
+
         return rootView;
     }
 
-    private class DatabaseBackgroundReports extends AsyncTask<String,Void,String> {
+    private class DatabaseBackgroundReport extends AsyncTask<String,Void,String> {
         Context context;
 
-        DatabaseBackgroundReports(Context context) {
+        DatabaseBackgroundReport(Context context) {
             this.context = context;
         }
 
         @Override
         protected String doInBackground(String... params) {
 
-            String getReportUrl = "http://10.0.2.2/android/getallreports.php";
-
-            String method = params[0];
-
-            if(method.equals("getreport")){
-                String androidId = params[1];
-
-                try {
-                    URL url = new URL(getReportUrl);
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setConnectTimeout(5000);
-                    httpURLConnection.setReadTimeout(5000);
-                    httpURLConnection.setRequestMethod("POST");
-                    httpURLConnection.setDoOutput(true);
-                    httpURLConnection.setDoInput(true);
-
-                    OutputStream outputStream = httpURLConnection.getOutputStream();
-                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-
-                    String dataEncoded = URLEncoder.encode("googleapiclient","UTF-8") + "=" + URLEncoder.encode(androidId,"UTF-8");
-                    bufferedWriter.write(dataEncoded);
-                    bufferedWriter.flush();
-                    bufferedWriter.close();
-                    outputStream.close();
-
-                    InputStream inputStream = httpURLConnection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"));
-
-                    String response = "";
-                    String line = "";
-
-                    resultList = new ArrayList<>();
-                    while((line = bufferedReader.readLine())!=null){
-                        String[] parts = line.split(";");
-                        String part1 = parts[0];
-                        String part2 = parts[1];
-                        String part3 = parts[2];
-                        String part4 = parts[3];
-
-                        resultList.add(part1 + "\n" + part2 + "\n" + part3 + "\n" + part4);
-                        response += line;
-                    }
-
-                    bufferedReader.close();
-                    inputStream.close();
-                    httpURLConnection.disconnect();
-
-                    return "Report was successfully saved!";
-
-                } catch (MalformedURLException e) {
-                    Log.i(TAG, "doInBackground: MalformedURLException :" + e);
-                    e.printStackTrace();
-                    return "Could not retrieve data, please try again";
-                } catch (ProtocolException e) {
-                    Log.i(TAG, "doInBackground: ProtocolException :" + e);
-                    e.printStackTrace();
-                    return "Could not retrieve data, please try again";
-                } catch (IOException e) {
-                    Log.i(TAG, "doInBackground: IOException :" + e);
-                    e.printStackTrace();
-                    return "Could not retrieve data, please try again";
+            Request request = new Request.Builder()
+                    .url("http://10.0.2.2/android/getallreportsjson.php")
+                    .get()
+                    .build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.i("failure",e.getMessage());
                 }
-            }
-            return "response";
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    Log.i("responseCode",response.code()+"");
+                    resultList = new ArrayList<>();
+                    coordinatesList = new ArrayList<>();
+                    String strResponse = response.body().string();
+                    try {
+                        JSONArray jr = new JSONArray(strResponse);
+                        //take all the results
+                        for(int i=0;i<jr.length();i++){
+                            JSONObject jObject = jr.getJSONObject(i);
+                            String[] parts = new String[6];
+                            parts[0] = jObject.getString("timeofreport");
+                            parts[1] = jObject.getString("originlat");
+                            parts[2] = jObject.getString("originlng");
+                            parts[3] = jObject.getString("destinationlat");
+                            parts[4] = jObject.getString("destinationlng");
+                            parts[5] = jObject.getString("reportstatus");
+
+                            resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3]+ ", " + parts[4] + "\nStatus: " + parts[5]);
+                            coordinatesList.add(parts[1]+"\n"+parts[2]+"\n"+parts[3]+"\n"+parts[4]);
+                        }
+                    } catch (JSONException e) {
+                        Log.i("failure",e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            });
+            return "";
         }
 
         @Override
         protected void onPostExecute(String result) {
             if(listViewAdapter != null){
                 listViewAdapter.notifyDataSetChanged();
+                Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_LONG).show();
             }
         }
     }

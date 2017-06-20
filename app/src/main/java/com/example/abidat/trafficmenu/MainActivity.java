@@ -63,13 +63,13 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    Marker marker;
-    ArrayList<LatLng> MarkerPoints;
+    private Marker marker;
+    private ArrayList<LatLng> MarkerPoints;
     SupportMapFragment supportMapFragment;
     private GoogleMap mMap;
-    GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
-    LocationRequest mLocationRequest;
+    private LocationRequest mLocationRequest;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private boolean reportMode;
     private static final String TAG = "MainActivity";
@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity
             alertDialog.setTitle("Alert");
             alertDialog.setMessage("Please make sure you have and Internet connection!");
             alertDialog.setIcon(R.drawable.warning);
+            alertDialog.setCancelable(false);
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -104,25 +105,35 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //TODO: Fix the visibility of the floating action bar
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LatLng origin = MarkerPoints.get(0);
-                LatLng dest = MarkerPoints.get(1);
-                String method = "report";
-                DatabaseBackgroundTasks databaseBackgroundTasks = new DatabaseBackgroundTasks(MainActivity.this);
-                databaseBackgroundTasks.execute(method,Identifiers.android_id,"1",String.valueOf(origin.latitude),
-                        String.valueOf(origin.longitude),String.valueOf(dest.latitude),
-                        String.valueOf(dest.longitude));
+                if(reportMode){
+                    if(MarkerPoints.size() == 2){
+                        LatLng origin = MarkerPoints.get(0);
+                        LatLng dest = MarkerPoints.get(1);
+                        String method = "report";
+                        DatabaseBackgroundTasks databaseBackgroundTasks = new DatabaseBackgroundTasks(MainActivity.this);
+                        databaseBackgroundTasks.execute(method,Identifiers.android_id,"1",String.valueOf(origin.latitude),
+                                String.valueOf(origin.longitude),String.valueOf(dest.latitude),
+                                String.valueOf(dest.longitude));
 
-                Log.i(TAG, "onClick: androidId is:" + Identifiers.android_id);
-                marker.remove();
+                        Log.i(TAG, "onClick: androidId is:" + Identifiers.android_id);
+                        marker.remove();
 
-                //TODO: FIX HERE
-                fab.hide();
-                mMap.getUiSettings().setAllGesturesEnabled(true);
+                        mMap.getUiSettings().setAllGesturesEnabled(true);
+                        mMap.clear();
+                        reportMode = false;
+                        getSupportActionBar().show();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this,"Please select another location!",Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    Toast.makeText(MainActivity.this,"Please enter report mode!",Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -150,7 +161,9 @@ public class MainActivity extends AppCompatActivity
             checkLocationPermission();
         }
 
-        //TODO: FIX HERE
+        /**
+         * If the intent is called from another class get all the values and execute FetchUrl()
+         */
         Intent i = getIntent();
         // Receiving the Data
         if(i.hasExtra("originlat")){
@@ -202,14 +215,17 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onMapReady: Location set!");
         }
 
+        //TODO: A Toast is not enough
         // OnMyLocationButton will enable users to switch modes
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
                 if(reportMode){
+                    getSupportActionBar().show();
                     reportMode = false;
                     mMap.getUiSettings().setAllGesturesEnabled(true);
                     mMap.resetMinMaxZoomPreference();
+                    mMap.clear();
                     Toast.makeText(MainActivity.this,"You are now in Viewer mode. Press the Location Button to enter Report Mode!",Toast.LENGTH_SHORT).show();
                 }
                 else {
@@ -217,6 +233,8 @@ public class MainActivity extends AppCompatActivity
                     mMap.getUiSettings().setTiltGesturesEnabled(false);
                     mMap.setMinZoomPreference(16);
                     reportMode = true;
+                    getSupportActionBar().hide();
+                    MarkerPoints.clear();
                     Toast.makeText(MainActivity.this,"You are now in Report mode. Press the Location Button to enter Viewer Mode!",Toast.LENGTH_SHORT).show();
                 }
                 return false;
@@ -231,16 +249,9 @@ public class MainActivity extends AppCompatActivity
                 if(reportMode){
                     // Already two locations
                     if (MarkerPoints.size() > 1) {
-                        if(findViewById(R.id.fab).getVisibility() == View.VISIBLE){
-                            MarkerPoints.clear();
-                            mMap.clear();
-                            findViewById(R.id.fab).setVisibility(View.INVISIBLE);
-                        }
-                        else {
-                            //TODO: Fix with database
-                            Toast.makeText(MainActivity.this,"Please wait 15 minutes to report again, or remove your previous report!",Toast.LENGTH_LONG).show();
-                            return;
-                        }
+
+                        MarkerPoints.clear();
+                        mMap.clear();
                     }
                     // Adding new item to the ArrayList
                     MarkerPoints.add(point);
@@ -267,8 +278,6 @@ public class MainActivity extends AppCompatActivity
 
                     // Checks, whether start and end locations are captured
                     if (MarkerPoints.size() >= 2) {
-                        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-                        fab.setVisibility(View.VISIBLE);
 
                         LatLng origin = MarkerPoints.get(0);
                         LatLng dest = MarkerPoints.get(1);
@@ -316,8 +325,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         //Main Menu
         if (id == R.id.nav_home) {
+            fab.show();
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
@@ -326,6 +337,7 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(app_name));
         }
         else if (id == R.id.nav_personal_history) {
+            fab.hide();
             ReportList fr = new ReportList();
 
             FragmentManager fm = getFragmentManager();
@@ -340,6 +352,7 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(history));
         }
         else if (id == R.id.nav_history) {
+            fab.hide();
             AllReportsList fr = new AllReportsList();
 
             FragmentManager fm = getFragmentManager();
@@ -354,6 +367,7 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(allhistory));
         }
         else if (id == R.id.nav_manage) {
+            fab.hide();
             DeleteReport fr = new DeleteReport();
 
             FragmentManager fm = getFragmentManager();
@@ -371,6 +385,7 @@ public class MainActivity extends AppCompatActivity
             //TODO: ADD FEATURE
         }
         else if (id == R.id.nav_aboutus) {
+            fab.hide();
             AboutUsFragment fr = new AboutUsFragment();
 
             FragmentManager fm = getFragmentManager();
@@ -500,7 +515,7 @@ public class MainActivity extends AppCompatActivity
      */
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        //Place current location marker
+        // Find current location
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         MapStateManager mapStateManager = new MapStateManager(this);

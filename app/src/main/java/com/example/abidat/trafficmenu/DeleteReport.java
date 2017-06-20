@@ -35,8 +35,10 @@ import static android.content.ContentValues.TAG;
 public class DeleteReport extends Fragment{
     ArrayAdapter<String> listViewAdapter;
     ArrayList<String> resultList;
-    String reportId;
-    String method;
+    private String reportId;
+    private String method;
+    private String itemPosition;
+
     public DeleteReport() {
         //empty constructor required
     }
@@ -50,7 +52,7 @@ public class DeleteReport extends Fragment{
         databaseBackgroundDeleteReports.execute("deletereports",Identifiers.android_id);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -62,18 +64,26 @@ public class DeleteReport extends Fragment{
         listView.setDividerHeight(10);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-                alertDialog.setTitle("Alert");
-                alertDialog.setMessage("Are you sure you want to delete this item?");
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                DeleteReport.DatabaseBackgroundDeleteReports databaseBackgroundDeleteReports = new DeleteReport.DatabaseBackgroundDeleteReports(getContext());
-                                databaseBackgroundDeleteReports.execute("deleteSingleReport",reportId);
-                                dialog.dismiss();
-                            }
-                        });
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+                alertDialog.setCancelable(true);
+                alertDialog.setTitle("Please confirm");
+                alertDialog.setMessage("Are you sure you want to delete this report?");
+                alertDialog.setIcon(R.drawable.ic_close_light);
+                alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        DeleteReport.DatabaseBackgroundDeleteReports databaseBackgroundDeleteReports = new DeleteReport.DatabaseBackgroundDeleteReports(getContext());
+                        databaseBackgroundDeleteReports.execute("deleteSingleReport",reportId, String.valueOf(position));
+                        dialog.dismiss();
+                    }
+                });
+                alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
                 alertDialog.show();
             }
         });
@@ -100,6 +110,7 @@ public class DeleteReport extends Fragment{
 
             if(method.equals("deletereports")){
                 String androidId = params[1];
+
                 try {
                     URL url = new URL(deleteReportsUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -158,6 +169,9 @@ public class DeleteReport extends Fragment{
                 }
             }
             else if(method.equals("deleteSingleReport")){
+
+                itemPosition = params[2];
+
                 try {
                     URL url = new URL(deleteSingleReportUrl);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -203,8 +217,14 @@ public class DeleteReport extends Fragment{
                 Toast.makeText(this.context,"Loaded successfully",Toast.LENGTH_SHORT).show();
             }
             else if(method.equals("deleteSingleReport")){
-                listViewAdapter.notifyDataSetChanged();
-                Toast.makeText(this.context,"Removed successfully",Toast.LENGTH_SHORT).show();
+                if(result.equals("Report was successfully removed!")){
+                    Toast.makeText(this.context,result,Toast.LENGTH_SHORT).show();
+                    resultList.remove(Integer.parseInt(itemPosition));
+                    listViewAdapter.notifyDataSetChanged();
+                }
+                else {
+                    Toast.makeText(this.context,"Could not access the database, please try again.",Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }

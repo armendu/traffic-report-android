@@ -50,13 +50,12 @@ public class ReportList extends Fragment {
         databaseBackgroundReport.execute(method,Identifiers.android_id);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         ListView listView = (ListView) rootView.findViewById(R.id.list);
-        listView.setDividerHeight(15);
 
         if(resultList!=null){
             listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
@@ -109,25 +108,25 @@ public class ReportList extends Fragment {
 
             String androidId = params[1];
             Request request = new Request.Builder()
-                    .url("http://10.0.2.2/android/getreportjson.php?googleapiclient="+androidId)
+                    .url("http://10.0.2.2/android/getreportjson.php?googleapiclient=" + androidId)
                     .get()
                     .build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.i("failure",e.getMessage());
+                    Log.i("failure", e.getMessage());
                 }
 
                 @Override
-                public void onResponse(Call call, final Response response) throws IOException {
-                    Log.i("responseCode",response.code()+"");
+                public void onResponse(Call call, Response response) throws IOException {
+                    Log.i("responseCode", response.code() + "");
                     resultList = new ArrayList<>();
                     coordinatesList = new ArrayList<>();
                     String strResponse = response.body().string();
                     try {
                         JSONArray jr = new JSONArray(strResponse);
                         //take all the results
-                        for(int i=0;i<jr.length();i++){
+                        for (int i = 0; i < jr.length(); i++) {
                             JSONObject jObject = jr.getJSONObject(i);
                             String[] parts = new String[6];
                             parts[0] = jObject.getString("timeofreport");
@@ -137,11 +136,11 @@ public class ReportList extends Fragment {
                             parts[4] = jObject.getString("destinationlng");
                             parts[5] = jObject.getString("reportstatus");
 
-                            resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3]+ ", " + parts[4] + "\nStatus: " + parts[5]);
-                            coordinatesList.add(parts[1]+"\n"+parts[2]+"\n"+parts[3]+"\n"+parts[4]);
+                            resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3] + ", " + parts[4] + "\nStatus: " + parts[5]);
+                            coordinatesList.add(parts[1] + "\n" + parts[2] + "\n" + parts[3] + "\n" + parts[4]);
                         }
                     } catch (JSONException e) {
-                        Log.i("failure",e.getMessage());
+                        Log.i("failure", e.getMessage());
                         e.printStackTrace();
                     }
                 }
@@ -158,5 +157,3 @@ public class ReportList extends Fragment {
         }
     }
 }
-
-

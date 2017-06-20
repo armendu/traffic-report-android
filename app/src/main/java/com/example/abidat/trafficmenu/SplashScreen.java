@@ -14,16 +14,17 @@ public class SplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //First hide the action bar
         getSupportActionBar().hide();
+
         EasySplashScreen splashScreen = new EasySplashScreen(SplashScreen.this)
                 .withFullScreen()
                 .withTargetActivity(MainActivity.class)
+                //.withBackgroundResource(R.drawable.screen)
                 .withSplashTimeOut(500)
-                .withBackgroundColor(Color.parseColor("#3e492f"))
-                .withLogo(R.drawable.barricade)
-                .withHeaderText("")
+                .withBackgroundColor(Color.TRANSPARENT)
+                .withLogo(R.drawable.screen)
+                //.withHeaderText("Welcome to our app")
                 .withAfterLogoText("Welcome to Report Traffic");
-
-        splashScreen.getHeaderTextView().setTextColor(Color.WHITE);
+                //.withFooterText("Welcome!");
 
         View view = splashScreen.create();
 
