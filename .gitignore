@@ -8,5 +8,5 @@
 /captures
 .externalNativeBuild
 
-*.idea
+.idea/
 *build
