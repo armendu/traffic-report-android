@@ -198,7 +198,7 @@ public class DeleteReport extends Fragment{
                     Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 } catch (ProtocolException e) {
-                    Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this.context,"Error while trying to access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 } catch (IOException e) {
                     Toast.makeText(this.context,"Could not access the database, please check your connection and try again!",Toast.LENGTH_SHORT).show();

@@ -7,6 +7,7 @@ import android.view.View;
 
 import gr.net.maroulis.library.EasySplashScreen;
 
+
 public class SplashScreen extends AppCompatActivity {
 
     @Override
@@ -21,7 +22,7 @@ public class SplashScreen extends AppCompatActivity {
                 //.withBackgroundResource(R.drawable.screen)
                 .withSplashTimeOut(500)
                 .withBackgroundColor(Color.TRANSPARENT)
-                .withLogo(R.drawable.screen)
+                .withLogo(R.drawable.barricade)
                 //.withHeaderText("Welcome to our app")
                 .withAfterLogoText("Welcome to Report Traffic");
                 //.withFooterText("Welcome!");

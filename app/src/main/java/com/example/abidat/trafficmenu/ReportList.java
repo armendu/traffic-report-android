@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -21,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -34,10 +37,14 @@ public class ReportList extends Fragment {
     ArrayAdapter<String> listViewAdapter;
     ArrayList<String> resultList;
     ArrayList<String> coordinatesList;
-    OkHttpClient client = new OkHttpClient();
 
     public ReportList() {
         //Empty constructor required
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.reportmenu, menu);
     }
 
     @Override
@@ -106,42 +113,56 @@ public class ReportList extends Fragment {
         @Override
         protected String doInBackground(String... params) {
 
+            final OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(5000, TimeUnit.MILLISECONDS)
+                    .build();
             String androidId = params[1];
-            Request request = new Request.Builder()
+            final Request request = new Request.Builder()
                     .url("http://10.0.2.2/android/getreportjson.php?googleapiclient=" + androidId)
                     .get()
                     .build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.i("failure", e.getMessage());
+                    client.dispatcher().cancelAll();
+                    call.cancel();
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    Log.i("responseCode", response.code() + "");
-                    resultList = new ArrayList<>();
-                    coordinatesList = new ArrayList<>();
-                    String strResponse = response.body().string();
-                    try {
-                        JSONArray jr = new JSONArray(strResponse);
-                        //take all the results
-                        for (int i = 0; i < jr.length(); i++) {
-                            JSONObject jObject = jr.getJSONObject(i);
-                            String[] parts = new String[6];
-                            parts[0] = jObject.getString("timeofreport");
-                            parts[1] = jObject.getString("originlat");
-                            parts[2] = jObject.getString("originlng");
-                            parts[3] = jObject.getString("destinationlat");
-                            parts[4] = jObject.getString("destinationlng");
-                            parts[5] = jObject.getString("reportstatus");
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    } else {
+                        try {
+                            Log.i("responseCode", response.code() + "");
+                            resultList = new ArrayList<>();
+                            coordinatesList = new ArrayList<>();
+                            String strResponse = response.body().string();
+                            try {
+                                JSONArray jr = new JSONArray(strResponse);
+                                //take all the results
+                                for (int i = 0; i < jr.length(); i++) {
+                                    JSONObject jObject = jr.getJSONObject(i);
+                                    String[] parts = new String[6];
+                                    parts[0] = jObject.getString("timeofreport");
+                                    parts[1] = jObject.getString("originlat");
+                                    parts[2] = jObject.getString("originlng");
+                                    parts[3] = jObject.getString("destinationlat");
+                                    parts[4] = jObject.getString("destinationlng");
+                                    parts[5] = jObject.getString("reportstatus");
 
-                            resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3] + ", " + parts[4] + "\nStatus: " + parts[5]);
-                            coordinatesList.add(parts[1] + "\n" + parts[2] + "\n" + parts[3] + "\n" + parts[4]);
+                                    resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3] + ", " + parts[4] + "\nStatus: " + parts[5]);
+                                    coordinatesList.add(parts[1] + "\n" + parts[2] + "\n" + parts[3] + "\n" + parts[4]);
+                                    response.body().close();
+                                }
+                            } catch (JSONException e) {
+                                Log.i("failure", e.getMessage());
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e){
+                            Log.i("failure", e.getMessage());
+                            e.printStackTrace();
                         }
-                    } catch (JSONException e) {
-                        Log.i("failure", e.getMessage());
-                        e.printStackTrace();
                     }
                 }
             });

@@ -47,10 +47,10 @@ public class AllReportsList extends Fragment {
 
         String method = "getallreports";
         AllReportsList.DatabaseBackgroundReport databaseBackgroundReport = new AllReportsList.DatabaseBackgroundReport(getContext());
-        databaseBackgroundReport.execute(method);
+        databaseBackgroundReport.execute(method,Identifiers.android_id);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -113,34 +113,45 @@ public class AllReportsList extends Fragment {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.i("failure",e.getMessage());
+                    client.dispatcher().cancelAll();
+                    call.cancel();
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    Log.i("responseCode",response.code()+"");
-                    resultList = new ArrayList<>();
-                    coordinatesList = new ArrayList<>();
-                    String strResponse = response.body().string();
-                    try {
-                        JSONArray jr = new JSONArray(strResponse);
-                        //take all the results
-                        for(int i=0;i<jr.length();i++){
-                            JSONObject jObject = jr.getJSONObject(i);
-                            String[] parts = new String[6];
-                            parts[0] = jObject.getString("timeofreport");
-                            parts[1] = jObject.getString("originlat");
-                            parts[2] = jObject.getString("originlng");
-                            parts[3] = jObject.getString("destinationlat");
-                            parts[4] = jObject.getString("destinationlng");
-                            parts[5] = jObject.getString("reportstatus");
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    } else {
+                        try {
+                            Log.i("responseCode",response.code()+"");
+                            resultList = new ArrayList<>();
+                            coordinatesList = new ArrayList<>();
+                            String strResponse = response.body().string();
+                            try {
+                                JSONArray jr = new JSONArray(strResponse);
+                                //take all the results
+                                for(int i=0;i<jr.length();i++){
+                                    JSONObject jObject = jr.getJSONObject(i);
+                                    String[] parts = new String[6];
+                                    parts[0] = jObject.getString("timeofreport");
+                                    parts[1] = jObject.getString("originlat");
+                                    parts[2] = jObject.getString("originlng");
+                                    parts[3] = jObject.getString("destinationlat");
+                                    parts[4] = jObject.getString("destinationlng");
+                                    parts[5] = jObject.getString("reportstatus");
 
-                            resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3]+ ", " + parts[4] + "\nStatus: " + parts[5]);
-                            coordinatesList.add(parts[1]+"\n"+parts[2]+"\n"+parts[3]+"\n"+parts[4]);
+                                    resultList.add("Time of report: " + parts[0] + "\nOrigin: " + parts[1] + ", " + parts[2] + "\nDestination: " + parts[3]+ ", " + parts[4] + "\nStatus: " + parts[5]);
+                                    coordinatesList.add(parts[1]+"\n"+parts[2]+"\n"+parts[3]+"\n"+parts[4]);
+                                    response.body().close();
+                                }
+                            } catch (JSONException e) {
+                                Log.i("failure",e.getMessage());
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e){
+                            Log.i("failure", e.getMessage());
+                            e.printStackTrace();
                         }
-                    } catch (JSONException e) {
-                        Log.i("failure",e.getMessage());
-                        e.printStackTrace();
                     }
                 }
             });
