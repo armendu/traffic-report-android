@@ -19,13 +19,11 @@ public class SplashScreen extends AppCompatActivity {
         EasySplashScreen splashScreen = new EasySplashScreen(SplashScreen.this)
                 .withFullScreen()
                 .withTargetActivity(MainActivity.class)
-                //.withBackgroundResource(R.drawable.screen)
                 .withSplashTimeOut(500)
                 .withBackgroundColor(Color.TRANSPARENT)
-                .withLogo(R.drawable.barricade)
+                .withLogo(R.drawable.barricade_splash)
                 //.withHeaderText("Welcome to our app")
                 .withAfterLogoText("Welcome to Report Traffic");
-                //.withFooterText("Welcome!");
 
         View view = splashScreen.create();
 
