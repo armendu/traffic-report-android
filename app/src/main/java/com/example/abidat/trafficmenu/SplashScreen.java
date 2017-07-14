@@ -7,7 +7,9 @@ import android.view.View;
 
 import gr.net.maroulis.library.EasySplashScreen;
 
-
+/**
+ * First Activity shown after the application starts
+ */
 public class SplashScreen extends AppCompatActivity {
 
     @Override

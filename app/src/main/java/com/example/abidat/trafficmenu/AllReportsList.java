@@ -61,9 +61,6 @@ public class AllReportsList extends Fragment {
             listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
         }
         else{
-//            resultList = new ArrayList<>();
-//            resultList.add("No results found!");
-//            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
             rootView = inflater.inflate(R.layout.noresults, container, false);
         }
 

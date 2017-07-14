@@ -9,6 +9,9 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 
 import java.io.IOException;
 
+/**
+ * Android has a unique AdvertisingID for each device
+ */
 public class GetAdertisingId extends AsyncTask<String,Void,String> {
     Context context;
 

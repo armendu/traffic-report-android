@@ -7,7 +7,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
-
+/**
+ * Saves the state of the Map after closing and calls them after re-opening
+ */
 public class MapStateManager {
     private static final String LONGITUDE = "longitude";
     private static final String LATITUDE = "latitude";

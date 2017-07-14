@@ -1,6 +1,7 @@
 package com.example.abidat.trafficmenu;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
@@ -63,12 +64,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    private Marker marker;
-    private ArrayList<LatLng> MarkerPoints;
+    private Marker marker; //Markers that show on the map
+    private ArrayList<LatLng> MarkerPoints; //List of LatLng, actual points of the Markers
     SupportMapFragment supportMapFragment;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
+    Location mLastLocation; //
     private LocationRequest mLocationRequest;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private boolean reportMode;
@@ -105,6 +106,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        /*
+        Main action button initialization and its onClick method
+         */
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,14 +150,18 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //TODO: Document the Fragment Manager class
+        //Replaces the frame_content with a new MapFragment
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
+        //Set supportMapFragment
         supportMapFragment.getMapAsync(this);
+        //Get the SupportFragmentManager
         android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
 
+        //With the support fragmentManager1, set the resource R.id.map to the supportMapFragment whose value was a map
         fragmentManager1.beginTransaction().add(R.id.map,supportMapFragment).commit();
+        //Show that supportMapFragment, commit to do those changes
         fragmentManager1.beginTransaction().show(supportMapFragment).commit();
 
         // If android is Android Marshmallow or above
@@ -355,6 +363,8 @@ public class MainActivity extends AppCompatActivity
         //Main Menu
         if (id == R.id.nav_home) {
             fab.show();
+
+            //Get the fragment manager, can be done even without these two rows
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.frame_content, new MapFragment()).commit();
 
@@ -363,13 +373,19 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(app_name));
         }
         else if (id == R.id.nav_personal_history) {
+            //Personal history fragment called
             fab.hide();
             ReportList fr = new ReportList();
 
+            //Get the fragment manager
             FragmentManager fm = getFragmentManager();
+
+            //Start the transaction
             FragmentTransaction fragmentTransaction = fm.beginTransaction();
+            //Get the supportFragmentManager
             android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
 
+            //Hide the supportMapFragment and then show the new fragment
             fragmentManager1.beginTransaction().hide(supportMapFragment).commit();
 
             fragmentTransaction.show(fr);
@@ -378,6 +394,7 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(history));
         }
         else if (id == R.id.nav_history) {
+            //All reports history fragment called
             fab.hide();
             AllReportsList fr = new AllReportsList();
 
@@ -393,6 +410,7 @@ public class MainActivity extends AppCompatActivity
             setTitle(getString(allhistory));
         }
         else if (id == R.id.nav_manage) {
+            //Delete report fragment called
             fab.hide();
             DeleteReport fr = new DeleteReport();
 
@@ -431,6 +449,9 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    /**
+     * After back button is pressed (Applies for the menu)
+     */
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -468,11 +489,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+        //Save the state of the map after exiting
         MapStateManager mapStateManager = new MapStateManager(this);
         mapStateManager.saveMapState(mMap);
         Log.i(TAG, "onStop: Application saved state!");
     }
 
+    /*
+    After connecting, set the location requests interval and priority
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //Make request to get the users location
@@ -620,7 +645,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * New thread to get the shortest route
+     * New thread to get the shortest route from origin to destination
      */
     public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
         // Parsing the data in non-ui thread
