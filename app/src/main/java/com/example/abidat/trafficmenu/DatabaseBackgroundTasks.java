@@ -40,7 +40,7 @@ public class DatabaseBackgroundTasks extends AsyncTask<String,Void,String> {
 
     @Override
     protected String doInBackground(String... params) {
-        String reportUrl = "http://10.0.2.2/android/report.php";
+        String reportUrl = Identifiers.restUrl + "report.php";
 
         String method = params[0];
         if(method.equals("report")){

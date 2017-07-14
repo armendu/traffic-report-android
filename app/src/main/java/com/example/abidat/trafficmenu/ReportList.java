@@ -57,7 +57,7 @@ public class ReportList extends Fragment {
         databaseBackgroundReport.execute(method,Identifiers.android_id);
 
         try {
-            Thread.sleep(1500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -68,10 +68,6 @@ public class ReportList extends Fragment {
             listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
         }
         else {
-            //TODO: Implement new progressbar
-//            resultList = new ArrayList<>();
-//            resultList.add("No results found!");
-//            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
             rootView = inflater.inflate(R.layout.noresults, container, false);
         }
 
@@ -120,7 +116,7 @@ public class ReportList extends Fragment {
                     .build();
             String androidId = params[1];
             final Request request = new Request.Builder()
-                    .url("http://10.0.2.2/android/getreportjson.php?googleapiclient=" + androidId)
+                    .url(Identifiers.restUrl + "getreportjson.php?googleapiclient=" + androidId)
                     .get()
                     .build();
             client.newCall(request).enqueue(new Callback() {

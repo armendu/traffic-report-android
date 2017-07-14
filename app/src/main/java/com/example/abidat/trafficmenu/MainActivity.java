@@ -230,7 +230,6 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG, "onMapReady: Location set!");
         }
 
-        //TODO: A Toast is not enough
         // OnMyLocationButton will enable users to switch modes
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
@@ -291,7 +290,7 @@ public class MainActivity extends AppCompatActivity
                     marker = mMap.addMarker(options);
                     //marker.remove();
 
-                    // Checks, whether start and end locations are captured
+                    // Checks whether start and end locations are captured
                     if (MarkerPoints.size() >= 2) {
 
                         LatLng origin = MarkerPoints.get(0);

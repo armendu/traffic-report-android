@@ -108,7 +108,7 @@ public class AllReportsList extends Fragment {
         protected String doInBackground(String... params) {
 
             Request request = new Request.Builder()
-                    .url("http://10.0.2.2/android/getallreportsjson.php")
+                    .url(Identifiers.restUrl + "getallreportsjson.php")
                     .get()
                     .build();
             client.newCall(request).enqueue(new Callback() {

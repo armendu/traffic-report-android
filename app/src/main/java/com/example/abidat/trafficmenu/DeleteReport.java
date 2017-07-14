@@ -103,8 +103,8 @@ public class DeleteReport extends Fragment{
         @Override
         protected String doInBackground(String... params) {
 
-            String deleteReportsUrl = "http://10.0.2.2/android/deletereports.php";
-            String deleteSingleReportUrl = "http://10.0.2.2/android/deletereport.php";
+            String deleteReportsUrl = Identifiers.restUrl + "deletereports.php";
+            String deleteSingleReportUrl = Identifiers.restUrl + "deletereport.php";
 
             method = params[0];
 
