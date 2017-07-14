@@ -67,10 +67,12 @@ public class ReportList extends Fragment {
         if(resultList!=null){
             listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
         }
-        else{
-            resultList = new ArrayList<>();
-            resultList.add("No results found!");
-            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
+        else {
+            //TODO: Implement new progressbar
+//            resultList = new ArrayList<>();
+//            resultList.add("No results found!");
+//            listViewAdapter = new ArrayAdapter<String>(getActivity(),R.layout.rowlayout,resultList);
+            rootView = inflater.inflate(R.layout.noresults, container, false);
         }
 
         listView.setDividerHeight(10);

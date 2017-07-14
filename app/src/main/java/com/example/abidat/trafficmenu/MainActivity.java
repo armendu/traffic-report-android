@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity
             checkLocationPermission();
         }
 
-        /**
+        /*
          * If the intent is called from another class get all the values and execute FetchUrl()
          */
         Intent i = getIntent();
@@ -188,16 +188,31 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        MapStateManager mapStateManager = new MapStateManager(this);
-        mMap.setMapType(mapStateManager.getMapType());
-        CameraPosition cameraPosition = mapStateManager.getSavedCameraPosition();
-        if(cameraPosition!=null) {
+
+        Intent i = getIntent();
+        // If the Intent is called from another class:
+        if(i.hasExtra("originlat")){
+            String originlat = i.getStringExtra("originlat");
+            String originlng = i.getStringExtra("originlng");
+            LatLng origin = new LatLng(Double.parseDouble(originlat),Double.parseDouble(originlng));
+
+            CameraPosition cameraPosition = new CameraPosition(origin,16,0,0);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
             mMap.moveCamera(cameraUpdate);
             Log.i(TAG, "onMapReady: Camera changed!" + cameraPosition);
         }
         else {
-            Log.i(TAG, "onMapReady: No previous session!");
+            MapStateManager mapStateManager = new MapStateManager(this);
+            mMap.setMapType(mapStateManager.getMapType());
+            CameraPosition cameraPosition = mapStateManager.getSavedCameraPosition();
+            if(cameraPosition!=null) {
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+                mMap.moveCamera(cameraUpdate);
+                Log.i(TAG, "onMapReady: Camera changed!" + cameraPosition);
+            }
+            else {
+                Log.i(TAG, "onMapReady: No previous session!");
+            }
         }
         
         //Initialize Google Play Services
@@ -300,6 +315,20 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if(getTitle().equals(getString(app_name))){
+            menu.clear();
+            getMenuInflater().inflate(R.menu.main, menu);
+        }
+
+        if(getTitle().equals(getString(history))){
+            menu.clear();
+            getMenuInflater().inflate(R.menu.reportmenu, menu);
+        }
         return true;
     }
 
@@ -647,7 +676,15 @@ public class MainActivity extends AppCompatActivity
                 // Adding all the points in the route to LineOptions
                 lineOptions.addAll(points);
                 lineOptions.width(12);
-                lineOptions.color(Color.RED);
+
+                Intent intent = getIntent();
+                // Receiving the Data
+                if(intent.hasExtra("originlat")){
+                    lineOptions.color(Color.GREEN);
+                }
+                else {
+                    lineOptions.color(Color.RED);
+                }
 
                 Log.d("onPostExecute","onPostExecute lineoptions decoded: " + lineOptions.toString());
             }
