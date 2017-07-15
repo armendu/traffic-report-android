@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity
     SupportMapFragment supportMapFragment;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    Location mLastLocation; //
-    private LocationRequest mLocationRequest;
+    Location mLastLocation;
+    LocationRequest mLocationRequest;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private boolean reportMode;
     private static final String TAG = "MainActivity";
