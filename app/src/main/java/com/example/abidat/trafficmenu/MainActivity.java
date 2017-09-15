@@ -371,6 +371,7 @@ public class MainActivity extends AppCompatActivity
             android.support.v4.app.FragmentManager fragmentManager1 = getSupportFragmentManager();
             fragmentManager1.beginTransaction().show(supportMapFragment).commit();
             setTitle(getString(app_name));
+            mMap.clear();
         }
         else if (id == R.id.nav_personal_history) {
             //Personal history fragment called
@@ -567,22 +568,21 @@ public class MainActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         // Find current location
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        MapStateManager mapStateManager = new MapStateManager(this);
-        CameraPosition position = mapStateManager.getSavedCameraPosition();
-        if(position!=null) {
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(position);
-            mMap.moveCamera(cameraUpdate);
-            Log.i(TAG, "onLocationChanged: Application loaded a previous session!");
-        }
-        else {
-            CameraPosition position2 = new CameraPosition(latLng,15,0,0);
-            CameraUpdate cameraUpdate2 = CameraUpdateFactory.newCameraPosition(position2);
-            mMap.moveCamera(cameraUpdate2);
-            Log.i(TAG, "onLocationChanged: Application started a new session!");
-
-        }
+//        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//
+//        MapStateManager mapStateManager = new MapStateManager(this);
+//        CameraPosition position = mapStateManager.getSavedCameraPosition();
+//        if(position!=null) {
+//            CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(position);
+//            mMap.moveCamera(cameraUpdate);
+//            Log.i(TAG, "onLocationChanged: Application loaded a previous session!");
+//        }
+//        else {
+//            CameraPosition position2 = new CameraPosition(latLng,15,0,0);
+//            CameraUpdate cameraUpdate2 = CameraUpdateFactory.newCameraPosition(position2);
+//            mMap.moveCamera(cameraUpdate2);
+//            Log.i(TAG, "onLocationChanged: Application started a new session!");
+//        }
         //stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -701,14 +701,7 @@ public class MainActivity extends AppCompatActivity
                 lineOptions.addAll(points);
                 lineOptions.width(12);
 
-                Intent intent = getIntent();
-                // Receiving the Data
-                if(intent.hasExtra("originlat")){
-                    lineOptions.color(Color.GREEN);
-                }
-                else {
-                    lineOptions.color(Color.RED);
-                }
+                lineOptions.color(Color.RED);
 
                 Log.d("onPostExecute","onPostExecute lineoptions decoded: " + lineOptions.toString());
             }

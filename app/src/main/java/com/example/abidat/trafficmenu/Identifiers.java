@@ -4,5 +4,5 @@ package com.example.abidat.trafficmenu;
  */
 public class Identifiers {
     static String android_id; //AdvertisingId
-    static String restUrl = "http://10.0.2.2/android/"; //localhost
+    static String restUrl = "http://192.168.0.103/android/"; //localhost
 }
