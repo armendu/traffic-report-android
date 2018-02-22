@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 
 import android.app.ProgressDialog;
 import android.content.Context;

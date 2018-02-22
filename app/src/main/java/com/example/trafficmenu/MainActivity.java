@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -54,11 +54,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.example.abidat.trafficmenu.R.string.aboutus;
-import static com.example.abidat.trafficmenu.R.string.allhistory;
-import static com.example.abidat.trafficmenu.R.string.app_name;
-import static com.example.abidat.trafficmenu.R.string.delete;
-import static com.example.abidat.trafficmenu.R.string.history;
+import static com.example.trafficmenu.R.string.aboutus;
+import static com.example.trafficmenu.R.string.allhistory;
+import static com.example.trafficmenu.R.string.app_name;
+import static com.example.trafficmenu.R.string.delete;
+import static com.example.trafficmenu.R.string.history;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,

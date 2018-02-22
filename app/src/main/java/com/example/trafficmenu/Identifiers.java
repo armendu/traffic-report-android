@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 /**
  * Static parameters that don't need to be changed
  */

@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;

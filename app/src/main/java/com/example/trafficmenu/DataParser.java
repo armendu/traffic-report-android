@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 
 import com.google.android.gms.maps.model.LatLng;
 

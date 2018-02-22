@@ -1,4 +1,4 @@
-package com.example.abidat.trafficmenu;
+package com.example.trafficmenu;
 
 import android.content.Context;
 import android.content.SharedPreferences;

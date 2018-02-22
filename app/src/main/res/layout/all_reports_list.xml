@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.abidat.trafficmenu.ReportList"
+    tools:context="com.example.trafficmenu.ReportList"
     android:background="@drawable/list_background">
 
     <ListView
